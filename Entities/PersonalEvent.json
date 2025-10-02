@@ -1,0 +1,47 @@
+{
+    "name": "PersonalEvent",
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string",
+        "format": "date",
+        "description": "Data do evento"
+      },
+      "title": {
+        "type": "string",
+        "description": "Título do evento"
+      },
+      "mood": {
+        "type": "string",
+        "enum": [
+          "muito_feliz",
+          "feliz",
+          "neutro",
+          "triste",
+          "muito_triste"
+        ],
+        "description": "Humor do dia"
+      },
+      "medication_taken": {
+        "type": "boolean",
+        "default": false,
+        "description": "Tomou medicação"
+      },
+      "special_moment": {
+        "type": "boolean",
+        "default": false,
+        "description": "Momento especial"
+      },
+      "special_moment_description": {
+        "type": "string",
+        "description": "Descrição do momento especial"
+      },
+      "diary_notes": {
+        "type": "string",
+        "description": "Notas de diário"
+      }
+    },
+    "required": [
+      "date"
+    ]
+  }

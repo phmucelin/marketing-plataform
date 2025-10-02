@@ -1,0 +1,80 @@
+{
+    "name": "Post",
+    "type": "object",
+    "properties": {
+      "client_id": {
+        "type": "string",
+        "description": "ID do cliente"
+      },
+      "title": {
+        "type": "string",
+        "description": "Título do post"
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "story",
+          "carrossel",
+          "post",
+          "reel"
+        ],
+        "description": "Formato do conteúdo"
+      },
+      "caption": {
+        "type": "string",
+        "description": "Legenda do post"
+      },
+      "hashtags": {
+        "type": "string",
+        "description": "Hashtags"
+      },
+      "image_url": {
+        "type": "string",
+        "description": "URL da imagem/thumbnail"
+      },
+      "video_url": {
+        "type": "string",
+        "description": "URL do vídeo"
+      },
+      "scheduled_date": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Data programada para publicação"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pendente",
+          "em_criacao",
+          "aguardando_aprovacao",
+          "aprovado",
+          "rejeitado",
+          "agendado",
+          "postado"
+        ],
+        "default": "pendente"
+      },
+      "rejection_reason": {
+        "type": "string",
+        "description": "Motivo da rejeição pelo cliente"
+      },
+      "boost_requested": {
+        "type": "boolean",
+        "default": false,
+        "description": "Cliente solicitou turbinar post"
+      },
+      "boost_notes": {
+        "type": "string",
+        "description": "Notas sobre o pedido de turbinar"
+      },
+      "notes": {
+        "type": "string",
+        "description": "Notas internas sobre o post"
+      }
+    },
+    "required": [
+      "client_id",
+      "title",
+      "format"
+    ]
+  }

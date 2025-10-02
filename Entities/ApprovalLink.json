@@ -1,0 +1,34 @@
+{
+    "name": "ApprovalLink",
+    "type": "object",
+    "properties": {
+      "client_id": {
+        "type": "string",
+        "description": "ID do cliente"
+      },
+      "unique_token": {
+        "type": "string",
+        "description": "Token único para o link"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Data de expiração do link"
+      },
+      "is_active": {
+        "type": "boolean",
+        "default": true
+      },
+      "selected_posts": {
+        "type": "array",
+        "description": "IDs dos posts selecionados (vazio = todos)",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "client_id",
+      "unique_token"
+    ]
+  }

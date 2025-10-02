@@ -1,0 +1,80 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "profile_photo": {
+      "type": "string",
+      "description": "URL da foto de perfil"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Handle do Instagram"
+    },
+    "facebook": {
+      "type": "string",
+      "description": "URL do Facebook"
+    },
+    "tiktok": {
+      "type": "string",
+      "description": "Handle do TikTok"
+    },
+    "contract_pdf": {
+      "type": "string",
+      "description": "URL do PDF do contrato"
+    },
+    "monthly_fee": {
+      "type": "number",
+      "description": "Valor mensal do contrato"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "recebido",
+        "pendente",
+        "atrasado"
+      ],
+      "default": "pendente"
+    },
+    "payment_history": {
+      "type": "array",
+      "description": "Histórico de pagamentos",
+      "items": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "year": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "recebido",
+              "pendente",
+              "atrasado"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "payment_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas sobre o cliente"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

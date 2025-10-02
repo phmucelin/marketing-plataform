@@ -1,0 +1,28 @@
+{
+    "name": "Idea",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Título da ideia"
+      },
+      "client_id": {
+        "type": "string",
+        "description": "Cliente vinculado (opcional)"
+      },
+      "notes": {
+        "type": "string",
+        "description": "Notas sobre a ideia"
+      },
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Tags para organização"
+      }
+    },
+    "required": [
+      "title"
+    ]
+  }

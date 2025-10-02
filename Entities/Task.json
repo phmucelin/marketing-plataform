@@ -1,0 +1,22 @@
+{
+    "name": "Task",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Título da tarefa"
+      },
+      "completed": {
+        "type": "boolean",
+        "default": false,
+        "description": "Se a tarefa está completa"
+      },
+      "order": {
+        "type": "number",
+        "description": "Ordem da tarefa"
+      }
+    },
+    "required": [
+      "title"
+    ]
+  }

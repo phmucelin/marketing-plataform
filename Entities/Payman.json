@@ -1,0 +1,54 @@
+{
+    "name": "Payment",
+    "type": "object",
+    "properties": {
+      "client_id": {
+        "type": "string",
+        "description": "ID do cliente"
+      },
+      "month": {
+        "type": "string",
+        "description": "Mês do pagamento (ex: janeiro)"
+      },
+      "year": {
+        "type": "number",
+        "description": "Ano do pagamento"
+      },
+      "amount": {
+        "type": "number",
+        "description": "Valor do pagamento"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "recebido",
+          "pendente",
+          "atrasado"
+        ],
+        "default": "pendente"
+      },
+      "payment_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Data do pagamento"
+      },
+      "invoice_url": {
+        "type": "string",
+        "description": "URL da nota fiscal"
+      },
+      "receipt_url": {
+        "type": "string",
+        "description": "URL do recibo"
+      },
+      "notes": {
+        "type": "string",
+        "description": "Observações sobre o pagamento"
+      }
+    },
+    "required": [
+      "client_id",
+      "month",
+      "year",
+      "amount"
+    ]
+  }
