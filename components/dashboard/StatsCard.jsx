@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
-export default function StatsCard({ title, value, icon: Icon, color, subtitle }) {
+export default function StatsCard({ title, value, icon, color, subtitle }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -17,8 +17,8 @@ export default function StatsCard({ title, value, icon: Icon, color, subtitle })
               <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
               {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
             </div>
-            <div className={`p-3 rounded-xl bg-gray-100`}>
-              {Icon && <Icon className={`w-6 h-6 ${color}`} />}
+            <div className={`p-3 rounded-xl ${color || 'bg-gray-100'}`}>
+              {icon}
             </div>
           </div>
         </CardContent>
