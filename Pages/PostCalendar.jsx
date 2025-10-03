@@ -7,7 +7,7 @@ import { ptBR } from "date-fns/locale";
 import { safeDate } from "@/utils";
 
 import PostCard from "../components/posts/PostCard";
-import PostDialog from "../Components/posts/PostDialog";
+import PostDialog from "../components/posts/PostDialog";
 
 export default function PostCalendar() {
   const [posts, setPosts] = useState([]);

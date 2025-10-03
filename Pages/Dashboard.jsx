@@ -9,7 +9,7 @@ import { createPageUrl, safeDate } from "@/utils";
 import StatsCard from "../components/dashboard/StatsCard";
 import PendingPosts from "../components/dashboard/PendingPosts";
 import TodayEvents from "../components/dashboard/TodayEvents";
-import TaskList from "../Components/dashboard/TaskList.jsx";
+import TaskList from "../components/dashboard/TaskList";
 
 export default function Dashboard() {
   const navigate = useNavigate();
