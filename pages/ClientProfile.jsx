@@ -19,7 +19,7 @@ import { ArrowLeft, Upload, Link as LinkIcon, Copy, Check, TrendingUp, TrendingD
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format, addDays } from "date-fns";
-import PaymentManager from "../components/clients/PaymentManager";
+import PaymentManager from "../components/clients/PaymentManager.jsx";
 
 export default function ClientProfile() {
   const navigate = useNavigate();

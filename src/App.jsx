@@ -1,14 +1,14 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Layout from '../Layout.jsx'
-import Dashboard from '../pages/Dashboard'
-import Clients from '../pages/Clients'
-import ClientProfile from '../pages/ClientProfile'
-import PostCalendar from '../pages/PostCalendar'
-import Kanban from '../pages/Kanban'
-import Ideas from '../pages/Ideas'
-import Personal from '../pages/Personal'
-import Approval from '../pages/Approval'
+import Layout from '@/Layout.jsx'
+import Dashboard from '@/pages/Dashboard'
+import Clients from '@/pages/Clients'
+import ClientProfile from '@/pages/ClientProfile'
+import PostCalendar from '@/pages/PostCalendar'
+import Kanban from '@/pages/Kanban'
+import Ideas from '@/pages/Ideas'
+import Personal from '@/pages/Personal'
+import Approval from '@/pages/Approval'
 
 function App() {
   return (
