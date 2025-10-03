@@ -9,5 +9,6 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "."),
     },
+    extensions: ['.mjs', '.js', '.jsx', '.json', '.ts', '.tsx']
   },
 }) 
