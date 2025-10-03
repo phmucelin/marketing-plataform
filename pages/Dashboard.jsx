@@ -6,10 +6,10 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl, safeDate } from "@/utils";
 
-import StatsCard from "../components/dashboard/StatsCard.jsx";
-import PendingPosts from "../components/dashboard/PendingPosts.jsx";
-import TodayEvents from "../components/dashboard/TodayEvents.jsx";
-import TaskList from "../components/dashboard/TaskList.jsx";
+import StatsCard from "@/components/dashboard/StatsCard.jsx";
+import PendingPosts from "@/components/dashboard/PendingPosts.jsx";
+import TodayEvents from "@/components/dashboard/TodayEvents.jsx";
+import TaskList from "@/components/dashboard/TaskList.jsx";
 
 export default function Dashboard() {
   const navigate = useNavigate();

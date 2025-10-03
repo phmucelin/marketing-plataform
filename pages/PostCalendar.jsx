@@ -6,8 +6,8 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, startOfMon
 import { ptBR } from "date-fns/locale";
 import { safeDate } from "@/utils";
 
-import PostCard from "../components/posts/PostCard.jsx";
-import PostDialog from "../components/posts/PostDialog.jsx";
+import PostCard from "@/components/posts/PostCard.jsx";
+import PostDialog from "@/components/posts/PostDialog.jsx";
 
 export default function PostCalendar() {
   const [posts, setPosts] = useState([]);
