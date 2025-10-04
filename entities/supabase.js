@@ -6,7 +6,7 @@ class HybridEntity {
   constructor(name, tableName) {
     this.name = name;
     this.tableName = tableName;
-    this.useSupabase = false; // Usar localStorage por enquanto
+    this.useSupabase = true; // Supabase configurado, ativar!
     this.init();
   }
 
@@ -43,11 +43,21 @@ class HybridEntity {
   }
 
   async init() {
-    console.log(`🔧 Inicializando ${this.name} - Sistema LOCAL-FIRST`);
+    console.log(`🔧 Inicializando ${this.name} - Sistema HÍBRIDO Supabase + Local`);
     
-    // Usar localStorage por enquanto (simples e funcional)
-    this.useSupabase = false;
-    console.log(`✅ ${this.name}: Usando localStorage (isolado por usuário)`);
+    // Tentar conectar ao Supabase (agora configurado!)
+    try {
+      const isConnected = await testSupabaseConnection();
+      if (isConnected) {
+        this.useSupabase = true;
+        console.log(`✅ ${this.name}: Conectado ao Supabase + backup local`);
+      } else {
+        throw new Error('Supabase não disponível');
+      }
+    } catch (error) {
+      console.warn(`⚠️ ${this.name}: Usando apenas localStorage`, error.message);
+      this.useSupabase = false;
+    }
     
     this.loadFromStorage();
     this.setupAutoRefresh();
