@@ -6,7 +6,7 @@ class HybridEntity {
   constructor(name, tableName) {
     this.name = name;
     this.tableName = tableName;
-    this.useSupabase = true; // Tentar usar Supabase primeiro, localStorage como fallback
+    this.useSupabase = false; // Usar localStorage por enquanto
     this.init();
   }
 
@@ -43,21 +43,11 @@ class HybridEntity {
   }
 
   async init() {
-    console.log(`🔧 Inicializando ${this.name} - Sistema HÍBRIDO Supabase + Local`);
+    console.log(`🔧 Inicializando ${this.name} - Sistema LOCAL-FIRST`);
     
-    // Testar conexão com Supabase
-    try {
-      const isConnected = await testSupabaseConnection();
-      if (isConnected) {
-        this.useSupabase = true;
-        console.log(`✅ ${this.name}: Conectado ao Supabase + backup local`);
-      } else {
-        throw new Error('Supabase não disponível');
-      }
-    } catch (error) {
-      console.warn(`⚠️ ${this.name}: Usando apenas localStorage`, error.message);
-      this.useSupabase = false;
-    }
+    // Usar localStorage por enquanto (simples e funcional)
+    this.useSupabase = false;
+    console.log(`✅ ${this.name}: Usando localStorage (isolado por usuário)`);
     
     this.loadFromStorage();
     this.setupAutoRefresh();
@@ -118,50 +108,14 @@ class HybridEntity {
 
   // Métodos principais - sempre usando localStorage para isolamento
   async list(order = "") {
-    try {
-      if (this.useSupabase) {
-        // Tentar buscar do Supabase primeiro
-        const user = getCurrentUser();
-        if (!user) {
-          console.warn(`❌ Usuário não logado para ${this.name}.list()`);
-          return [];
-        }
-
-        let query = supabase.from(this.tableName).select('*');
-        
-        // Filtrar por usuário (security)
-        query = query.eq('user_id', user.userId);
-        
-        // Ordenação
-        if (order.startsWith('-')) {
-          const field = order.substring(1);
-          query = query.order(field, { ascending: false });
-        } else if (order) {
-          query = query.order(order, { ascending: true });
-        }
-
-        const { data, error } = await query;
-        
-        if (error) {
-          console.warn(`❌ Erro no Supabase para ${this.name}:`, error.message);
-          throw error;
-        }
-
-        console.log(`📡 ${this.name}: Dados carregados do Supabase (${data?.length || 0} registros)`);
-        return data || [];
-      }
-    } catch (error) {
-      console.warn(`⚠️ Supabase indisponível para ${this.name}, usando localStorage:`, error.message);
-    }
-
-    // Fallback para localStorage
+    // Usar apenas localStorage (simples e funcional)
     this.loadFromStorage();
     
     // Aplicar ordenação se especificada
     let sortedData = [...this.data];
     if (order.startsWith('-')) {
       const field = order.substring(1);
-      sortedData.sort((a, b) => new Date(b[field]) - new Date(a[field]));;
+      sortedData.sort((a, b) => new Date(b[field]) - new Date(a[field]));
     } else if (order) {
       const field = order;
       sortedData.sort((a, b) => new Date(a[field]) - new Date(b[field]));
