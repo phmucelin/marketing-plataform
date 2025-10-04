@@ -1,51 +1,33 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Layout from '@/Layout.jsx'
-import Dashboard from '@/pages/Dashboard'
-import Clients from '@/pages/Clients'
-import ClientProfile from '@/pages/ClientProfile'
-import PostCalendar from '@/pages/PostCalendar'
-import Kanban from '@/pages/Kanban'
-import Ideas from '@/pages/Ideas'
-import Personal from '@/pages/Personal'
-import Approval from '@/pages/Approval'
-import Login from '@/pages/Login'
-import Register from '@/pages/Register'
-import AuthGuard from '@/components/AuthGuard'
 
 function App() {
-  // Sistema LOCAL-FIRST com autenticação: Inicialização imediata
-  console.log('🚀 AppMari 2.0: Sistema com autenticação por usuário');
+  console.log('🚀 React está funcionando!');
 
   return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Routes>
-        {/* Páginas públicas (sem autenticação) */}
-        <Route path="/approval" element={<Approval />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        
-        {/* Páginas protegidas (requerem autenticação) */}
-        <Route path="/" element={
-          <AuthGuard>
-            <Layout />
-          </AuthGuard>
-        }>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="clients" element={<Clients />} />
-          <Route path="client-profile" element={<ClientProfile />} />
-          <Route path="post-calendar" element={<PostCalendar />} />
-          <Route path="kanban" element={<Kanban />} />
-          <Route path="ideas" element={<Ideas />} />
-          <Route path="personal" element={<Personal />} />
-        </Route>
-        
-        {/* Redirecionamento padrão para login se rota não encontrada */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#e0f0ff',
+      padding: '20px',
+      fontFamily: 'system-ui'
+    }}>
+      <h1>🚀 AppMari 2.0</h1>
+      <h2>React está funcionando!</h2>
+      <p>Agora você pode implementar o sistema completo.</p>
+      <button 
+        onClick={() => alert('JavaScript funcionando! Sistema pronto!')}
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
+        Testar Sistema
+      </button>
+    </div>
   )
 }
 
-export default App 
+export default App
