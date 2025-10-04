@@ -56,6 +56,18 @@ export default function Personal() {
 
   useEffect(() => {
     loadEvents();
+    
+    // Adicionar listener para recarregar quando a janela recebe foco
+    const handleFocus = () => {
+      console.log('🔄 Recarregando eventos pessoais devido ao foco da janela');
+      loadEvents();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [loadEvents]);
 
   const handleSaveEvent = async () => {

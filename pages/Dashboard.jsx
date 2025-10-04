@@ -20,6 +20,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
+    
+    // Adicionar listener para recarregar quando a janela recebe focado
+    const handleFocus = () => {
+      console.log('🔄 Recarregando Dashboard devido ao foco da janela');
+      loadData();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const loadData = async () => {

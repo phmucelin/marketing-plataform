@@ -25,6 +25,18 @@ export default function Kanban() {
 
   useEffect(() => {
     loadData();
+    
+    // Adicionar listener para recarregar quando a janela recebe foco
+    const handleFocus = () => {
+      console.log('🔄 Recarregando Kanban devido ao foco da janela');
+      loadData();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const loadData = async () => {

@@ -20,6 +20,29 @@ class HybridEntity {
     } else {
       console.log(`✅ Usando Supabase para ${this.name}`);
     }
+    
+    // Configurar listeners para recarregar dados quando necessário
+    this.setupAutoRefresh();
+  }
+
+  setupAutoRefresh() {
+    // Recarregar dados quando a janela recebe foco (usuário volta à aba)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => {
+        console.log(`🔄 Recarregando dados de ${this.name} devido ao foco da janela`);
+        // Force refresh após pequeno delay para evitar conflitos
+        setTimeout(() => {
+          this.refreshData();
+        }, 100);
+      });
+    }
+  }
+
+  refreshData() {
+    if (!this.useSupabase) {
+      this.loadFromStorage();
+    }
+    // Para Supabase, os dados serão recarregados automaticamente na próxima chamada
   }
 
   // Métodos para localStorage (fallback)
@@ -201,6 +224,30 @@ export const PersonalEvent = new HybridEntity('PersonalEvent', 'personal_events'
 export const Idea = new HybridEntity('Idea', 'ideas');
 export const Task = new HybridEntity('Task', 'tasks');
 export const ApprovalLink = new HybridEntity('ApprovalLink', 'approval_links');
+
+// Função para aguardar a inicialização de todas as entidades
+export const initializeEntities = async () => {
+  console.log('🔄 Inicializando todas as entidades...');
+  
+  const entities = [Client, Post, Payment, PersonalEvent, Idea, Task, ApprovalLink];
+  
+  // Aguardar inicialização de todas as entidades
+  await Promise.all(entities.map(entity => {
+    // Aguardar até que a próriedade useSupabase seja definida
+    return new Promise(resolve => {
+      const checkInit = () => {
+        if (entity.useSupabase !== undefined) {
+          resolve();
+        } else {
+          setTimeout(checkInit, 50);
+        }
+      };
+      checkInit();
+    });
+  }));
+  
+  console.log('✅ Todas as entidades foram inicializadas!');
+};
 
 // Dados de exemplo para localStorage (fallback)
 Client.loadSampleData = function() {

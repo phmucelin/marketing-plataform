@@ -64,6 +64,22 @@ export default function ClientProfile() {
       loadPosts();
       loadApprovalLinks();
     }
+    
+    // Adicionar listener para recarregar quando a janela recebe foco
+    const handleFocus = () => {
+      console.log('🔄 Recarregando perfil do cliente devido ao foco da janela');
+      if (clientId) {
+        loadClient();
+        loadPosts();
+        loadApprovalLinks();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [clientId, loadClient, loadPosts, loadApprovalLinks]);
 
   const handleFileUpload = async (e, field) => {

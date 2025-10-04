@@ -12,6 +12,18 @@ export default function Clients() {
 
   useEffect(() => {
     loadClients();
+    
+    // Adicionar listener para recarregar quando a janela recebe foco
+    const handleFocus = () => {
+      console.log('🔄 Recarregando clientes devido ao foco da janela');
+      loadClients();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const loadClients = async () => {

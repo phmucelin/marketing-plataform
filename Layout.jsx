@@ -23,7 +23,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-const navigationItems = [
+export default function Layout() {
+  const location = useLocation();
+
+  const navigationItems = [
   {
     title: "Dashboard",
     url: createPageUrl("Dashboard"),

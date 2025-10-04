@@ -19,6 +19,18 @@ export default function PostCalendar() {
 
   useEffect(() => {
     loadData();
+    
+    // Adicionar listener para recarregar quando a janela recebe foco
+    const handleFocus = () => {
+      console.log('🔄 Recarregando calendário de posts devido ao foco da janela');
+      loadData();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const loadData = async () => {
@@ -53,10 +65,23 @@ export default function PostCalendar() {
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1, locale: ptBR });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  // Para visualização mensal
+  // Para visualização mensal - calcular dias do calendário completo
   const monthStart = startOfMonth(currentWeek);
   const monthEnd = endOfMonth(currentWeek);
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  
+  // Adicionar dias do mês anterior para preencher a primeira semana (começando na segunda)
+  const firstDayOfWeek = monthStart.getDay(); // 0 = Domingo, 1 = Segunda, etc
+  const daysToAdd = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Ajustar para começar na segunda
+  const calendarStart = new Date(monthStart);
+  calendarStart.setDate(calendarStart.getDate() - daysToAdd);
+  
+  // Adicionar dias do próximo mês para completar a última semana
+  const lastDayOfWeek = monthEnd.getDay();
+  const daysToAddEnd = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek;
+  const calendarEnd = new Date(monthEnd);
+  calendarEnd.setDate(calendarEnd.getDate() + daysToAddEnd);
+  
+  const monthDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   const getPostsForDay = (day) => {
     const dayStr = format(day, "yyyy-MM-dd");
