@@ -1,25 +1,51 @@
 import { supabase, testConnection } from '@/lib/supabase.js'
 
-// Classe base para entidades com fallback
+// Classe base para entidades com autenticação por usuário
 class HybridEntity {
   constructor(name, tableName) {
     this.name = name;
     this.tableName = tableName;
-    this.storageKey = `appmari_${name}`;
-    this.useSupabase = false;
+    this.useSupabase = false; // SEMPRE usar localStorage para isolamento
     this.init();
   }
 
-  async init() {
-    // Testar conexão com Supabase
-    this.useSupabase = await testConnection();
-    
-    if (!this.useSupabase) {
-      console.log(`⚠️ Usando localStorage para ${this.name} (Supabase não disponível)`);
-      this.loadFromStorage();
-    } else {
-      console.log(`✅ Usando Supabase para ${this.name}`);
+  // Obter chave de armazenamento baseada no usuário autenticado
+  getStorageKey() {
+    // Verificar se há sessão válida diretamente
+    const session = localStorage.getItem('appmari_session');
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        const userId = sessionData.user?.id;
+        if (userId) {
+          return `appmari_${this.name}_${userId}`;
+        }
+      } catch (error) {
+        console.warn(`${this.name}: Erro ao parsear sessão:`, error.message);
+      }
     }
+    
+    // Fallback para dispositivo (modo não autenticado)
+    const deviceId = this.getOrCreateDeviceId();
+    return `appmari_${this.name}_device_${deviceId}`;
+  }
+
+  getOrCreateDeviceId() {
+    // Gerar ID único por dispositivo para modo não autenticado
+    let deviceId = localStorage.getItem('appmari_device_id');
+    if (!deviceId) {
+      deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('appmari_device_id', deviceId);
+      console.log('📱 Novo dispositivo criado:', deviceId);
+    }
+    return deviceId;
+  }
+
+  async init() {
+    // LOCAL-FIRST: Sempre usar localStorage para isolamento total por dispositivo
+    console.log(`🏠 ${this.name}: Usando armazenamento local (isolado por dispositivo)`);
+    this.useSupabase = false;
+    this.loadFromStorage();
     
     // Configurar listeners para recarregar dados quando necessário
     this.setupAutoRefresh();
@@ -30,31 +56,38 @@ class HybridEntity {
     if (typeof window !== 'undefined') {
       window.addEventListener('focus', () => {
         console.log(`🔄 Recarregando dados de ${this.name} devido ao foco da janela`);
-        // Force refresh após pequeno delay para evitar conflitos
-        setTimeout(() => {
+        this.refreshData();
+      });
+      
+      // Listener para mudanças de estado de visibilidade da página
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          console.log(`🔄 ${this.name}: Página visível novamente - recarregando dados`);
           this.refreshData();
-        }, 100);
+        }
       });
     }
   }
 
   refreshData() {
-    if (!this.useSupabase) {
-      this.loadFromStorage();
-    }
-    // Para Supabase, os dados serão recarregados automaticamente na próxima chamada
+    // Sempre recarregar do localStorage para garantir dados atualizados
+    this.loadFromStorage();
   }
 
-  // Métodos para localStorage (fallback)
+  // Métodos para localStorage com chave dinâmica do usuário
   loadFromStorage() {
     try {
-      const stored = localStorage.getItem(this.storageKey);
+      const storageKey = this.getStorageKey();
+      const stored = localStorage.getItem(storageKey);
       this.data = stored ? JSON.parse(stored) : [];
       
-      if (this.data.length === 0 && !localStorage.getItem(`${this.storageKey}_initialized`)) {
+      // Carregar dados de exemplo apenas para novos usuários/dispositivos
+      if (this.data.length === 0 && !localStorage.getItem(`${storageKey}_initialized`)) {
         this.loadSampleData();
-        localStorage.setItem(`${this.storageKey}_initialized`, 'true');
+        localStorage.setItem(`${storageKey}_initialized`, 'true');
       }
+      
+      console.log(`📂 ${this.name}: Carregados ${this.data.length} itens do armazenamento`);
     } catch (error) {
       console.error(`Error loading ${this.name} from storage:`, error);
       this.data = [];
@@ -63,151 +96,103 @@ class HybridEntity {
 
   saveToStorage() {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+      const storageKey = this.getStorageKey();
+      localStorage.setItem(storageKey, JSON.stringify(this.data));
+      console.log(`💾 ${this.name}: Dados salvos com sucesso`);
     } catch (error) {
       console.error(`Error saving ${this.name} to storage:`, error);
     }
   }
 
-  // Métodos principais com fallback
+  // Métodos principais - sempre usando localStorage para isolamento
   async list(order = "") {
-    if (this.useSupabase) {
-      try {
-        const { data, error } = await supabase
-          .from(this.tableName)
-          .select('*')
-          .order('created_date', { ascending: false });
-        
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error(`Error fetching ${this.name} from Supabase:`, error);
-        this.useSupabase = false;
-        return this.list(order); // Fallback para localStorage
-      }
-    } else {
-      this.loadFromStorage();
-      return [...this.data];
+    this.loadFromStorage();
+    
+    // Aplicar ordenação se especificada
+    let sortedData = [...this.data];
+    if (order.startsWith('-')) {
+      const field = order.substring(1);
+      sortedData.sort((a, b) => new Date(b[field]) - new Date(a[field]));
+    } else if (order) {
+      const field = order;
+      sortedData.sort((a, b) => new Date(a[field]) - new Date(b[field]));
     }
+    
+    return sortedData;
   }
 
   async filter(filters, order = "") {
-    if (this.useSupabase) {
-      try {
-        let query = supabase.from(this.tableName).select('*');
-        
-        // Aplicar filtros
-        Object.keys(filters).forEach(key => {
-          if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
-            query = query.eq(key, filters[key]);
-          }
-        });
-        
-        const { data, error } = await query.order('created_date', { ascending: false });
-        
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error(`Error filtering ${this.name} from Supabase:`, error);
-        this.useSupabase = false;
-        return this.filter(filters, order); // Fallback para localStorage
-      }
-    } else {
-      this.loadFromStorage();
-      return this.data.filter(item => {
-        return Object.keys(filters).every(key => 
-          item[key] === filters[key] || !filters[key]
-        );
+    this.loadFromStorage();
+    
+    // Filtrar dados localmente
+    let filteredData = this.data.filter(item => {
+      return Object.keys(filters).every(key => {
+        const filterValue = filters[key];
+        if (filterValue === null || filterValue === undefined || filterValue === '') {
+          return true;
+        }
+        return item[key] === filterValue;
       });
+    });
+    
+    // Aplicar ordenação se especificada
+    if (order.startsWith('-')) {
+      const field = order.substring(1);
+      filteredData.sort((a, b) => new Date(b[field]) - new Date(a[field]));
+    } else if (order) {
+      const field = order;
+      filteredData.sort((a, b) => new Date(a[field]) - new Date(b[field]));
     }
+    
+    return filteredData;
   }
 
   async create(data) {
-    if (this.useSupabase) {
-      try {
-        const { data: result, error } = await supabase
-          .from(this.tableName)
-          .insert([{
-            ...data,
-            created_date: new Date().toISOString()
-          }])
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return result;
-      } catch (error) {
-        console.error(`Error creating ${this.name} in Supabase:`, error);
-        this.useSupabase = false;
-        return this.create(data); // Fallback para localStorage
-      }
-    } else {
-      this.loadFromStorage();
-      const newItem = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        created_date: new Date().toISOString(),
-        ...data
-      };
-      this.data.push(newItem);
-      this.saveToStorage();
-      return newItem;
-    }
+    this.loadFromStorage();
+    
+    const newItem = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      created_date: new Date().toISOString(),
+      ...data
+    };
+    
+    this.data.push(newItem);
+    this.saveToStorage();
+    
+    console.log(`✅ ${this.name}: Item criado com sucesso (ID: ${newItem.id})`);
+    return newItem;
   }
 
   async update(id, data) {
-    if (this.useSupabase) {
-      try {
-        const { data: result, error } = await supabase
-          .from(this.tableName)
-          .update(data)
-          .eq('id', id)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return result;
-      } catch (error) {
-        console.error(`Error updating ${this.name} in Supabase:`, error);
-        this.useSupabase = false;
-        return this.update(id, data); // Fallback para localStorage
-      }
-    } else {
-      this.loadFromStorage();
-      const index = this.data.findIndex(item => item.id === id);
-      if (index !== -1) {
-        this.data[index] = { ...this.data[index], ...data };
-        this.saveToStorage();
-        return this.data[index];
-      }
-      return null;
+    this.loadFromStorage();
+    
+    const index = this.data.findIndex(item => item.id === id);
+    if (index !== -1) {
+      this.data[index] = { ...this.data[index], ...data };
+      this.saveToStorage();
+      
+      console.log(`✅ ${this.name}: Item atualizado com sucesso (ID: ${id})`);
+      return this.data[index];
     }
+    
+    console.warn(`⚠️ ${this.name}: Item não encontrado para atualização (ID: ${id})`);
+    return null;
   }
 
   async delete(id) {
-    if (this.useSupabase) {
-      try {
-        const { error } = await supabase
-          .from(this.tableName)
-          .delete()
-          .eq('id', id);
-        
-        if (error) throw error;
-        return true;
-      } catch (error) {
-        console.error(`Error deleting ${this.name} from Supabase:`, error);
-        this.useSupabase = false;
-        return this.delete(id); // Fallback para localStorage
-      }
-    } else {
-      this.loadFromStorage();
-      const index = this.data.findIndex(item => item.id === id);
-      if (index !== -1) {
-        const deleted = this.data.splice(index, 1)[0];
-        this.saveToStorage();
-        return deleted;
-      }
-      return null;
+    this.loadFromStorage();
+    
+    const index = this.data.findIndex(item => item.id === id);
+    if (index !== -1) {
+      const deleted = this.data.splice(index, 1)[0];
+      this.saveToStorage();
+      
+      console.log(`✅ ${this.name}: Item deletado com sucesso (ID: ${id})`);
+      return deleted;
     }
+    
+    console.warn(`⚠️ ${this.name}: Item não encontrado para exclusão (ID: ${id})`);
+    return null;
   }
 
   // Método para carregar dados de exemplo (fallback)
@@ -225,28 +210,92 @@ export const Idea = new HybridEntity('Idea', 'ideas');
 export const Task = new HybridEntity('Task', 'tasks');
 export const ApprovalLink = new HybridEntity('ApprovalLink', 'approval_links');
 
-// Função para aguardar a inicialização de todas as entidades
-export const initializeEntities = async () => {
-  console.log('🔄 Inicializando todas as entidades...');
-  
-  const entities = [Client, Post, Payment, PersonalEvent, Idea, Task, ApprovalLink];
-  
-  // Aguardar inicialização de todas as entidades
-  await Promise.all(entities.map(entity => {
-    // Aguardar até que a próriedade useSupabase seja definida
-    return new Promise(resolve => {
-      const checkInit = () => {
-        if (entity.useSupabase !== undefined) {
-          resolve();
-        } else {
-          setTimeout(checkInit, 50);
-        }
-      };
-      checkInit();
+// Sistema LOCAL-FIRST: Todas as entidades agora são simples e síncronas
+console.log('🏠 Sistema LOCAL-FIRST: Dados isolados por dispositivo');
+
+// Função para limpar dados locais em caso de problemas (DEBUG)
+export const clearAllLocalData = () => {
+  try {
+    const session = localStorage.getItem('appmari_session');
+    let userEmail = 'visitante';
+    
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        userEmail = sessionData.user?.email || 'desconhecido';
+      } catch (error) {
+        console.warn('Erro ao parsear sessão:', error.message);
+      }
+    }
+
+    const entities = ['Client', 'Post', 'Payment', 'PersonalEvent', 'Idea', 'Task', 'ApprovalLink'];
+    
+    entities.forEach(entity => {
+      // Limpar por usuário primeiro (se logado)
+      const userId = session ? JSON.parse(session).user?.id : null;
+      if (userId) {
+        localStorage.removeItem(`appmari_${entity}_${userId}`);
+      }
+      
+      // Limpar por dispositivo também
+      const deviceId = localStorage.getItem('appmari_device_id');
+      if (deviceId) {
+        localStorage.removeItem(`appmari_${entity}_device_${deviceId}`);
+      }
+      
+      console.log(`🗑️ Dados locais limpos: ${entity}`);
     });
-  }));
-  
-  console.log('✅ Todas as entidades foram inicializadas!');
+    
+    console.log(`🧹 Todos os dados de ${userEmail} foram limpos!`);
+  } catch (error) {
+    console.error('Erro ao limpar dados:', error);
+  }
+};
+
+// Função para exportar dados locais (BACKUP)
+export const exportLocalData = () => {
+  try {
+    const session = localStorage.getItem('appmari_session');
+    if (!session) {
+      alert('você precisa estar logado para exportar dados!');
+      return;
+    }
+
+    const sessionData = JSON.parse(session);
+    const user = sessionData.user;
+    if (!user) {
+      alert('Sessão de usuário inválida!');
+      return;
+    }
+
+    const entities = ['Client', 'Post', 'Payment', 'PersonalEvent', 'Idea', 'Task', 'ApprovalLink'];
+    const backup = {
+      user: user,
+      export_date: new Date().toISOString(),
+      entities: {}
+    };
+    
+    entities.forEach(entity => {
+      const storageKey = `appmari_${entity}_${user.id}`;
+      const data = localStorage.getItem(storageKey);
+      if (data) {
+        backup.entities[entity] = JSON.parse(data);
+      }
+    });
+    
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `appmari_backup_${user.email.split('@')[0]}_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    console.log(`📦 Backup dos dados de ${user.email} exportado!`);
+  } catch (error) {
+    console.error('Erro ao exportar dados:', error);
+    alert('Erro ao exportar dados. Verifique o console para mais detalhes.');
+  }
 };
 
 // Dados de exemplo para localStorage (fallback)
@@ -417,10 +466,34 @@ ApprovalLink.loadSampleData = function() {
 
 export const User = {
   async me() {
-    return { 
-      email: 'mariana@socialmedia.com', 
-      name: 'Mariana Dias',
-      role: 'Social Media Manager'
+    // Verificar sessão diretamente sem dependência circular
+    const session = localStorage.getItem('appmari_session');
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        const user = sessionData.user;
+        if (user) {
+          return {
+            ...user,
+            role: 'Social Media Manager',
+            device: 'Usuário Autenticado (AppMari 2.0)',
+            dataScope: 'Dados isolados por usuário autenticado'
+          };
+        }
+      } catch (error) {
+        console.warn('Erro ao parsear sessão:', error.message);
+      }
+    }
+    
+    // Modo não autenticado
+    const deviceId = localStorage.getItem('appmari_device_id') || 'unknown';
+    return {
+      id: deviceId,
+      email: 'visitante@appmari.com',
+      name: 'Visitante',
+      role: 'Visitante',
+      device: 'Modo Não Autenticado (AppMari 2.0)',
+      dataScope: 'Dados isolados por dispositivo'
     };
   }
 };

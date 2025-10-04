@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/Layout.jsx'
 import Dashboard from '@/pages/Dashboard'
 import Clients from '@/pages/Clients'
@@ -9,36 +9,28 @@ import Kanban from '@/pages/Kanban'
 import Ideas from '@/pages/Ideas'
 import Personal from '@/pages/Personal'
 import Approval from '@/pages/Approval'
-import { initializeEntities } from '@/entities/all'
-
+import Login from '@/pages/Login'
+import Register from '@/pages/Register'
+import AuthGuard from '@/components/AuthGuard'
 
 function App() {
-  const [entitiesReady, setEntitiesReady] = useState(false)
-
-  useEffect(() => {
-    // Inicializar entidades no startup
-    initializeEntities().then(() => {
-      setEntitiesReady(true)
-      console.log('🚀 App pronto para renderizar!')
-    })
-  }, [])
-
-  if (!entitiesReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-blue-500 rounded-full animate-pulse mx-auto mb-4"></div>
-          <p className="text-blue-600 font-medium">Carregando aplicativo...</p>
-        </div>
-      </div>
-    )
-  }
+  // Sistema LOCAL-FIRST com autenticação: Inicialização imediata
+  console.log('🚀 AppMari 2.0: Sistema com autenticação por usuário');
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
+        {/* Páginas públicas (sem autenticação) */}
         <Route path="/approval" element={<Approval />} />
-        <Route path="/" element={<Layout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Páginas protegidas (requerem autenticação) */}
+        <Route path="/" element={
+          <AuthGuard>
+            <Layout />
+          </AuthGuard>
+        }>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="clients" element={<Clients />} />
@@ -48,6 +40,9 @@ function App() {
           <Route path="ideas" element={<Ideas />} />
           <Route path="personal" element={<Personal />} />
         </Route>
+        
+        {/* Redirecionamento padrão para login se rota não encontrada */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   )

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
@@ -8,8 +8,12 @@ import {
   Lightbulb,
   Heart,
   Kanban,
-  Sparkles
+  Sparkles,
+  LogOut,
+  User as UserIcon,
+  Shield
 } from "lucide-react";
+import { getCurrentUser, logout } from "@/lib/auth.js";
 import {
   Sidebar,
   SidebarContent,
@@ -25,48 +29,58 @@ import {
 
 export default function Layout() {
   const location = useLocation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
+  const handleLogout = () => {
+    if (confirm('Tem certeza que deseja sair?')) {
+      logout();
+      window.location.href = '/login';
+    }
+  };
 
   const navigationItems = [
-  {
-    title: "Dashboard",
-    url: createPageUrl("Dashboard"),
-    icon: LayoutDashboard,
-    emoji: "🏠"
-  },
-  {
-    title: "Pessoal",
-    url: createPageUrl("Personal"),
-    icon: Heart,
-    emoji: "💖"
-  },
-  {
-    title: "Calendário de Posts",
-    url: createPageUrl("PostCalendar"),
-    icon: Calendar,
-    emoji: "📅"
-  },
-  {
-    title: "Kanban",
-    url: createPageUrl("Kanban"),
-    icon: Kanban,
-    emoji: "📋"
-  },
-  {
-    title: "Banco de Ideias",
-    url: createPageUrl("Ideas"),
-    icon: Lightbulb,
-    emoji: "💡"
-  },
-  {
-    title: "Clientes",
-    url: createPageUrl("Clients"),
-    icon: Users,
-    emoji: "👥"
-  },
-];
-
-export default function Layout() {
-  const location = useLocation();
+    {
+      title: "Dashboard",
+      url: createPageUrl("Dashboard"),
+      icon: LayoutDashboard,
+      emoji: "🏠"
+    },
+    {
+      title: "Pessoal",
+      url: createPageUrl("Personal"),
+      icon: Heart,
+      emoji: "💖"
+    },
+    {
+      title: "Calendário de Posts",
+      url: createPageUrl("PostCalendar"),
+      icon: Calendar,
+      emoji: "📅"
+    },
+    {
+      title: "Kanban",
+      url: createPageUrl("Kanban"),
+      icon: Kanban,
+      emoji: "📋"
+    },
+    {
+      title: "Banco de Ideias",
+      url: createPageUrl("Ideas"),
+      icon: Lightbulb,
+      emoji: "💡"
+    },
+    {
+      title: "Clientes",
+      url: createPageUrl("Clients"),
+      icon: Users,
+      emoji: "👥"
+    },
+  ];
 
   return (
     <SidebarProvider>
@@ -89,13 +103,32 @@ export default function Layout() {
           <SidebarHeader className="border-b-2 border-blue-200 p-6 bg-gradient-to-br from-blue-500 to-indigo-600">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-                <Sparkles className="w-7 h-7 text-blue-600" />
+                <UserIcon className="w-7 h-7 text-blue-600" />
               </div>
-              <div>
-                <h2 className="font-bold text-white text-base leading-tight">Mariana Dias</h2>
-                <p className="text-xs text-blue-100 font-medium">Social Media ✨</p>
+              <div className="flex-1">
+                <h2 className="font-bold text-white text-base leading-tight">
+                  {user ? user.name : 'Usuário'}
+                </h2>
+                <p className="text-xs text-blue-400 font-medium flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  Autenticado ✨
+                </p>
               </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4 text-white" />
+              </button>
             </div>
+            {user && (
+              <div className="mt-3 pt-3 border-t border-blue-400/30">
+                <p className="text-xs text-blue-200">
+                  {user.email}
+                </p>
+              </div>
+            )}
           </SidebarHeader>
           
           <SidebarContent className="p-4">
