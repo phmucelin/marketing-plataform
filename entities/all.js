@@ -1,2 +1,2 @@
-// Importar entidades híbridas (Supabase + localStorage fallback)
-export * from './supabase.js';
+// Importar entidades SUPABASE PURAMENTE (sem localStorage)
+export * from './supabase-only.js';

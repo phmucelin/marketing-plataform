@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Post, ApprovalLink, Client, User } from "@/entities/all";
+import { Post, ApprovalLink, Client } from "@/entities/all";
 import { SendEmail } from "@/integrations/Core";
 import { safeDate } from "@/utils";
 import { Button } from "@/components/ui/button";
